@@ -1,7 +1,7 @@
 const meja = require("../models/index").meja;
 
 exports.getAllMeja = async (request, response) => {
-  await meja
+  meja
     .findAll()
     .then((result) => {
       response.status(200).json({
@@ -19,7 +19,7 @@ exports.getAllMeja = async (request, response) => {
 };
 
 exports.getByID = async (request, response) => {
-  await meja
+  meja
     .findByPk(request.params.id)
     .then((result) => {
       if (result) {
@@ -45,7 +45,7 @@ exports.getByID = async (request, response) => {
 
 exports.getByStatus = async (request, response) => {
   const param = { status: request.params.status };
-  await meja
+  meja
     .findAll({ where: param })
     .then((result) => {
       if (result) {
@@ -74,7 +74,7 @@ exports.addMeja = async (request, response) => {
     nomor_meja: request.body.nomor_meja,
     status: "kosong",
   };
-  await meja
+  meja
     .findOne({ where: { nomor_meja: dataMeja.nomor_meja } })
     .then((result) => {
       if (result) {

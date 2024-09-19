@@ -6,7 +6,7 @@ const meja = model.meja;
 const detail = model.detail_transaksi
 
 exports.getAll = async (request, response) => {
-  await transaksi
+  transaksi
     .findAll({
       include: [
         {
@@ -34,7 +34,7 @@ exports.getAll = async (request, response) => {
 };
 
 exports.getID = async (request, response) => {
-  await transaksi
+  transaksi
     .findByPk(request.params.id, {
       include: [
         {
@@ -69,7 +69,7 @@ exports.getID = async (request, response) => {
 };
 
 exports.getIdUser = async (request, response) => {
-  await transaksi
+  transaksi
     .findAll({
       where: { id_user: request.params.id_user },
       include: [

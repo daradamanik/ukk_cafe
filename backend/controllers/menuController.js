@@ -5,7 +5,9 @@ const path = require("path");
 const fs = require("fs");
 
 exports.getAllMenu = async (request, response) => {
-  await menu.findAll().then((result) => {
+  menu
+  .findAll()
+  .then((result) => {
     response.json({
       success: true,
       data: result,
@@ -48,7 +50,7 @@ exports.searchMenu = async (request, response) => {
 };
 
 exports.getById = async (request, response) => {
-  await menu
+  menu
     .findByPk(request.params.id)
     .then((result) => {
       if (result) {
@@ -80,7 +82,7 @@ exports.addMenu = (request, response) => {
       gambar: request.file.filename,
       harga: request.body.harga,
     };
-    await menu
+    menu
       .findOne({ where: { nama_menu: dataMenu.nama_menu } })
       .then((result) => {
         if (result) {

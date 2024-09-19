@@ -296,7 +296,7 @@ exports.resetpassword = async (req, res) => {
 };
 
 exports.getById = async (request, response) => {
-    await user
+    user
     .findByPk(request.params.id)
     .then((result) => {
       if (result) {
