@@ -22,7 +22,8 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       type: DataTypes.INTEGER
     },
-    nomor_meja: DataTypes.INTEGER
+    nomor_meja: DataTypes.INTEGER,
+    status: DataTypes.ENUM("kosong", "terisi"),
   }, {
     sequelize,
     modelName: 'meja',

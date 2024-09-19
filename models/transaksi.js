@@ -11,10 +11,10 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       this.hasOne(models.detail_transaksi, {
-        foreignKey: "id_transaksi", as:"transaksi"
+        foreignKey: "id_transaksi", as:"detail_transaksi", onDelete: "CASCADE"
       })
-      this.belongsTo(models.user, {foreignKey: "id_user"})
-      this.belongsTo(models.meja, {foreignKey: "id_meja"})
+      this.belongsTo(models.user, {foreignKey: "id_user", as: "user"})
+      this.belongsTo(models.meja, {foreignKey: "id_meja", as: "meja"})
     }
   }
   transaksi.init({
