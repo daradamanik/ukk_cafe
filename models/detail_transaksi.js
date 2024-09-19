@@ -22,6 +22,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       id_transaksi: DataTypes.INTEGER,
       id_menu: DataTypes.INTEGER,
+      jumlah: DataTypes.INTEGER,
       harga: DataTypes.INTEGER,
     },
     {

@@ -23,6 +23,9 @@ module.exports = {
           key: "id_menu"
         }
       },
+      jumlah : {
+        type: Sequelize.INTEGER
+      },
       harga: {
         type: Sequelize.INTEGER
       },

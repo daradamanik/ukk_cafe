@@ -90,7 +90,7 @@ exports.Login = async (request, response) => {
     let token = await jsonwebtoken.sign(tokenPayLoad, SECRET_KEY); //payload yang udah ada di sign in pake library jwt
     return response.status(200).json({
       success: true, //klo bisa, muncul pesan "hore uhuy bisa"
-      message: "status login",
+      message: "logged in",
       logged: true,
       data: {
         //yang login siapa

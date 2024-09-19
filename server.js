@@ -13,6 +13,8 @@ const menuRoute = require('./routes/menu-routes')
 app.use(`/menu`, menuRoute)
 const mejaRoute = require('./routes/meja-routes')
 app.use(`/meja`, mejaRoute)
+const transaksiRoute = require('./routes/transaksi-routes')
+app.use(`/transaksi`, transaksiRoute)
 
 app.listen(8000, () => {
     console.log("running")

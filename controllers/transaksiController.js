@@ -3,6 +3,7 @@ const Op = require("sequelize").Op;
 const model = require("../models/index");
 const user = model.user;
 const meja = model.meja;
+const detail = model.detail_transaksi
 
 exports.getAll = async (request, response) => {
   await transaksi
@@ -108,27 +109,40 @@ exports.addTransaksi = async (request, response) => {
     id_user: request.body.id_user,
     id_meja: request.body.id_meja,
     nama_pelanggan: request.body.nama_pelanggan,
+    tgl_transaksi: new Date(),
     status: request.body.status,
   };
+  transaksi.create(dataTransaksi)
+  .then((result) => {
+    let id_transaksi = result.id_transaksi
+    let detail_transaksi = request.body.detail_transaksi
+    let total = 0
 
-  await transaksi
-    .create(dataTransaksi)
-    .then((result) => {
-      response.status(200).json({
-        success: true,
-        message: yeay,
-      });
-      meja.update(
-        { status: "terisi" },
-        { where: { id_meja: request.body.id_meja } }
-      );
-    })
-    .catch((error) => {
-      response.status(400).json({
-        success: false,
-        message: error.message,
-      });
-    });
+    for (let i = 0; i < detail_transaksi.length; i++) {
+        detail_transaksi[i].id_transaksi = id_transaksi
+        detail_transaksi[i].harga = detail_transaksi[i].jumlah * detail_transaksi[i].harga;
+        total += detail_transaksi[i].harga;
+        if(detail_transaksi[i].jumlah<0) {
+            return response.json({
+                message: 'pelit banget'
+            })
+        }
+    }
+    detail.bulkCreate(detail_transaksi)
+        .then(result => {
+            return response.json({
+                success: true,
+                data: result,
+                message: 'Order list has created'
+            })
+        })
+        .catch(error => {
+            return response.json({
+                success: false,
+                message: error.message
+            })
+        })
+  })
 };
 
 exports.deleteTransaksi = async (request, response) => {
@@ -200,8 +214,158 @@ exports.editTransaksi = async (request, response) => {
   });
 };
 
-exports.filtertanggal = async(request, response) => {
-    const param = {tgl_transaksi: request.params.tgl_transaksi}
-    await transaksi
-    .
+exports.filtertanggal = async (request, response) => {
+  const { startDate, endDate } = request.params;
+
+  try {
+    const transactions = await transaksi.findAll({
+      where: {
+        tgl_transaksi: {
+          [Op.between]: [startDate, endDate], 
+        },
+      },
+      include: [
+        {
+          model: user,
+          as: "user",
+        },
+        {
+          model: model.meja,
+          as: "meja",
+        },
+      ],
+    });
+
+    if (transactions.length === 0) {
+      return response.status(404).json({
+        success: false,
+        message: "No transactions found in the given date range.",
+      });
+    }
+
+    return response.status(200).json({
+      success: true,
+      data: transactions,
+    });
+  } catch (error) {
+    return response.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+exports.filterNamaUser = async (request, response) => {
+  const param = { nama_user: request.body.nama_user };
+  user
+    .findAll({
+      where: {
+        nama_user: param.nama_user,
+      },
+    })
+    .then((result) => {
+      if (result === null) {
+        response.status(404).json({
+          success: false,
+          message: "not found",
+        });
+      } else {
+        transaksi
+          .findAll({
+            where: {
+              id_user: result[0].id_user,
+            },
+          })
+          .then((result) => {
+            if (result.length === 0) {
+              response.status(404).json({
+                success: false,
+                message: "not found",
+              });
+            } else {
+              response.status(200).json({
+                success: true,
+                data: result,
+              });
+            }
+          })
+          .catch((error) => {
+            response.status(400).json({
+              success: false,
+              message: error.message,
+            });
+          });
+      }
+    })
+    .catch((error) => {
+      response.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    });
+};
+
+exports.filterBulan = async (request, response) => {
+  const param = { bulan_transaksi: request.params.bulan_transaksi };
+  transaksi
+    .findAll({
+      where: {
+        tgl_transaksi: {
+          [Op.like]: param.bulan_transaksi + "%",
+        },
+      },
+      include: [
+        {
+          model: user,
+          as: "user",
+        },
+        {
+          model: model.meja,
+          as: "meja",
+        },
+      ],
+    })
+    .then((result) => {
+      if (result.length === 0) {
+        response.status(404).json({
+          success: false,
+          message: "not found",
+        });
+      } else {
+        response.status(200).json({
+          success: true,
+          data: result,
+        });
+      }
+    })
+    .catch((error) => {
+      response.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    });
+};
+
+exports.orderHistory = async (request, response) => {
+    try {
+        let data = await transaksi.findAll({
+            include:
+                [
+                    {
+                        model: detail,
+                        as: 'detail_transaksi'
+                    }
+                ]
+        })
+        return response.status(200).json({
+            status: true,
+            data: data,
+            message: "Order list has been loaded"
+        })
+    } catch (error) {
+        return response.status(500).json({
+            status: false,
+            message: error.message
+        });
+    }
 }
