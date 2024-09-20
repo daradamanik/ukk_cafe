@@ -131,7 +131,6 @@ exports.updateMeja = async (request, response) => {
   const param = { id_meja: request.params.id };
   const dataMeja = {
     nomor_meja: request.body.nomor_meja,
-    status: request.body.status,
   };
   meja.findOne({ where: param }).then((result) => {
     if (result) {

@@ -147,6 +147,27 @@ exports.addTransaksi = async (request, response) => {
 
 exports.deleteTransaksi = async (request, response) => {
   const param = { id_transaksi: request.params.id };
+  detail
+  .destroy({ where: param })
+  .then((result) => {
+    if (result) {
+      response.status(200).json({
+        success: true,
+        message: "deleted",
+      });
+    } else {
+      response.status(404).json({
+        success: false,
+        message: "not found",
+      });
+    }
+  })
+  .catch((error) => {
+    response.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  });
   transaksi
     .destroy({ where: param })
     .then((result) => {
@@ -188,7 +209,7 @@ exports.editTransaksi = async (request, response) => {
             message: "yeay",
             data: {
               id_transaksi: param.id_transaksi,
-              ...data,
+              ...dataTransaksi,
             },
           });
 

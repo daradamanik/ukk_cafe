@@ -5,7 +5,7 @@ const auth  = require('../auth/auth')
 const {checkRole} = require('../middleware/checkRole') 
 app.use(express.json())
 
-app.get("/getAll", auth.authVerify, checkRole(["admin"]), control.getAllMeja)
+app.get("/getAll", auth.authVerify, checkRole(["admin","kasir"]), control.getAllMeja)
 app.get("/getID/:id", auth.authVerify, checkRole(["admin"]), control.getByID)
 app.get("/getStatus/:status", auth.authVerify, checkRole(["admin"]), control.getByStatus)
 app.get("/search/:nomor_meja", auth.authVerify, checkRole(["admin"]), control.searchMeja)
