@@ -423,18 +423,30 @@ exports.receipt = async(request, response) => {
       })
     }
     const transactionDetails = dataTransaksi.detail || []
+    const receiptItems = transactionDetails.map(detail => {
+      if (!detail.menu) {
+        return {
+          namaMenu: "unknown",
+          quantity: detail.jumlah,
+          pricePerMenu: detail.harga,
+          totalPerMenu: detail.jumlah * detail.harga
+        };
+      }
+      return {
+        namaMenu: detail.menu.nama_menu,
+        quantity: detail.jumlah,
+        pricePerMenu: detail.harga,
+        totalPerMenu: detail.jumlah * detail.harga
+      };
+    });
+    const grandTotal= receiptItems.reduce((sum, item) => sum + item.totalPerMenu, 0)
     const struk = {
       kasir: dataTransaksi.user.nama_user,
       pelanggan: dataTransaksi.nama_pelanggan,
       date: dataTransaksi.tgl_transaksi,
-      items: transactionDetails.map(item => ({
-        namaMenu: item.menu.nama_menu,
-        quantity: item.jumlah,
-        pricePerMenu: item.harga,
-        totalPerMenu: item.jumlah*item.harga
-      }))
+      items: receiptItems,
+      grandTotal
     }
-    struk.grandTotal = struk.items.reduce((sum, item) => sum + item.totalPerMenu, 0)
     response.json(struk)
   } catch(error) {
     response.status(500).json({
