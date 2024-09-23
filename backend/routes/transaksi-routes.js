@@ -15,5 +15,6 @@ app.get("/history", auth.authVerify, checkRole(["manajer", "kasir"]), control.or
 app.post("/add", auth.authVerify, checkRole(["manajer", "kasir"]), control.addTransaksi)
 app.put("/update/:id", auth.authVerify, checkRole(["manajer", "kasir"]), control.editTransaksi)
 app.delete("/delete/:id", auth.authVerify, checkRole(["manajer"]), control.deleteTransaksi)
+app.get("/struk/:id_transaksi", auth.authVerify, checkRole(["kasir"]), control.receipt)
 
 module.exports = app

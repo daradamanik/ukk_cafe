@@ -3,7 +3,9 @@ const Op = require("sequelize").Op;
 const model = require("../models/index");
 const user = model.user;
 const meja = model.meja;
-const detail = model.detail_transaksi
+const detail = model.detail_transaksi;
+const menu = model.menu;
+// const easyinvoice = require('easyinvoice')
 
 exports.getAll = async (request, response) => {
   transaksi
@@ -389,4 +391,54 @@ exports.orderHistory = async (request, response) => {
             message: error.message
         });
     }
+}
+
+exports.receipt = async(request, response) => {
+  let param = request.params.id_transaksi
+  try{
+
+    const dataTransaksi = await transaksi.findOne({
+      where: {id_transaksi: param},
+      include: [
+        {
+          model: user,
+          attributes: ['nama_user'],
+          as: 'user'
+        },
+        {
+          model: detail,
+          as: 'detail',
+          include: {
+            model: menu, 
+            attributes: ['nama_menu', 'harga'],
+            as: 'beli'
+          }
+        }
+      ]
+    })
+    if(!dataTransaksi){
+      return response.status(404).json({
+        status: false,
+        message: "not found"
+      })
+    }
+    const transactionDetails = dataTransaksi.detail || []
+    const struk = {
+      kasir: dataTransaksi.user.nama_user,
+      pelanggan: dataTransaksi.nama_pelanggan,
+      date: dataTransaksi.tgl_transaksi,
+      items: transactionDetails.map(item => ({
+        namaMenu: item.menu.nama_menu,
+        quantity: item.jumlah,
+        pricePerMenu: item.harga,
+        totalPerMenu: item.jumlah*item.harga
+      }))
+    }
+    struk.grandTotal = struk.items.reduce((sum, item) => sum + item.totalPerMenu, 0)
+    response.json(struk)
+  } catch(error) {
+    response.status(500).json({
+      message: error.message
+    })
+  }
 }
