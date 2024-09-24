@@ -124,7 +124,7 @@ exports.addTransaksi = async (request, response) => {
         detail_transaksi[i].id_transaksi = id_transaksi
         detail_transaksi[i].harga = detail_transaksi[i].jumlah * detail_transaksi[i].harga;
         total += detail_transaksi[i].harga;
-        if(detail_transaksi[i].jumlah<0) {
+        if(detail_transaksi[i].jumlah<1) {
             return response.json({
                 message: 'pelit banget'
             })
@@ -396,7 +396,6 @@ exports.orderHistory = async (request, response) => {
 exports.receipt = async(request, response) => {
   let param = request.params.id_transaksi
   try{
-
     const dataTransaksi = await transaksi.findOne({
       where: {id_transaksi: param},
       include: [
@@ -424,16 +423,8 @@ exports.receipt = async(request, response) => {
     }
     const transactionDetails = dataTransaksi.detail || []
     const receiptItems = transactionDetails.map(detail => {
-      if (!detail.menu) {
-        return {
-          namaMenu: "unknown",
-          quantity: detail.jumlah,
-          pricePerMenu: detail.harga,
-          totalPerMenu: detail.jumlah * detail.harga
-        };
-      }
       return {
-        namaMenu: detail.menu.nama_menu,
+        namaMenu: detail.menu ? detail.menu.nama_menu : 'Unknown',
         quantity: detail.jumlah,
         pricePerMenu: detail.harga,
         totalPerMenu: detail.jumlah * detail.harga
