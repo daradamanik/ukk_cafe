@@ -424,19 +424,19 @@ exports.receipt = async(request, response) => {
     const transactionDetails = dataTransaksi.detail || []
     const receiptItems = transactionDetails.map(detail => {
       return {
-        namaMenu: detail.menu ? detail.menu.nama_menu : 'Unknown',
+        menuName: detail.menu ? detail.menu.nama_menu : 'Unknown',
         quantity: detail.jumlah,
         pricePerMenu: detail.harga,
         totalPerMenu: detail.jumlah * detail.harga
       };
     });
-    const grandTotal= receiptItems.reduce((sum, item) => sum + item.totalPerMenu, 0)
+    const total= receiptItems.reduce((sum, item) => sum + item.totalPerMenu, 0)
     const struk = {
       kasir: dataTransaksi.user.nama_user,
       pelanggan: dataTransaksi.nama_pelanggan,
-      date: dataTransaksi.tgl_transaksi,
-      items: receiptItems,
-      grandTotal
+      tanggal: dataTransaksi.tgl_transaksi,
+      pembbelian: receiptItems,
+      total
     }
     response.json(struk)
   } catch(error) {
