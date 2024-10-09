@@ -10,7 +10,7 @@ import {
   Image,
 } from "@chakra-ui/react";
 import { deleteMeja } from "./ApiHandler";
-import ImageDelete from "./../../../../assets/react.svg";
+import ImageDelete from "./../../../../assets/image-delete.svg";
 
 export default function ModalDelete({ isOpen, onClose, payload, reload }) {
   return (
