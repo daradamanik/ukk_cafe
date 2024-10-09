@@ -8,7 +8,6 @@ const user = model.user;
 const meja = model.meja;
 const detail = model.detail_transaksi;
 const menu = model.menu;
-// const easyinvoice = require('easyinvoice')
 
 exports.getAll = async (request, response) => {
   transaksi
@@ -129,7 +128,7 @@ exports.addTransaksi = async (request, response) => {
       total += detail_transaksi[i].harga;
       if (detail_transaksi[i].jumlah < 1) {
         return response.json({
-          message: "pelit banget",
+          message: "pembelian minimal 1",
         });
       }
     }
@@ -159,7 +158,7 @@ exports.deleteTransaksi = async (request, response) => {
       if (result) {
         response.status(200).json({
           success: true,
-          message: "deleted",
+          message: "transaction has been deleted",
         });
       } else {
         response.status(404).json({
@@ -180,7 +179,7 @@ exports.deleteTransaksi = async (request, response) => {
       if (result) {
         response.status(200).json({
           success: true,
-          message: "deleted",
+          message: "transaction has been deleted",
         });
       } else {
         response.status(404).json({
@@ -212,7 +211,6 @@ exports.editTransaksi = async (request, response) => {
         .then((result) => {
           response.status(200).json({
             success: true,
-            message: "yeay",
             data: {
               id_transaksi: param.id_transaksi,
               ...dataTransaksi,
@@ -384,13 +382,13 @@ exports.orderHistory = async (request, response) => {
       ],
     });
     return response.status(200).json({
-      status: true,
+      success: true,
       data: data,
       message: "Order list has been loaded",
     });
   } catch (error) {
     return response.status(500).json({
-      status: false,
+      success: false,
       message: error.message,
     });
   }
@@ -420,7 +418,7 @@ exports.receipt = async (request, response) => {
     });
     if (!dataTransaksi) {
       return response.status(404).json({
-        status: false,
+        success: false,
         message: "not found",
       });
     }
@@ -518,6 +516,7 @@ await page.pdf({
 await browser.close()
 
 response.json({
+  success: true,
   message: 'receipt generated successfully', file
 })
 

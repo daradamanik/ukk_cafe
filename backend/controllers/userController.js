@@ -10,9 +10,7 @@ const sequelize = new Sequelize("cafe_ukk", "root", "", {
 });
 
 exports.addUser = async (request, response) => {
-  //buat user baru yang belum pernah punya akun
   let newUser = {
-    //datanya user baru
     nama_user: request.body.nama_user,
     username: request.body.username,
     password: md5(request.body.password),
@@ -21,7 +19,6 @@ exports.addUser = async (request, response) => {
 
   let existingUser = await user.findAll({
     where: {
-      //cari, udah ada apa blm data lamanya
       [Op.or]: [{ nama_user: newUser.nama_user }, { username: newUser.username }],
     },
   });
@@ -37,14 +34,12 @@ exports.addUser = async (request, response) => {
       message: "Harus diisi semua",
     });
   } else {
-    //dia udah punya akun dan login nya pake data yg sama
     if (existingUser.length > 0) {
       return response.status(400).json({
         success: false,
         message: "Cari nama atau username lain",
       });
     } else {
-      //ini dia murni bikin akun baru, prosesnya kayak add user biasa
       console.log(newUser);
       user
         .create(newUser)
@@ -68,32 +63,28 @@ exports.addUser = async (request, response) => {
 exports.Login = async (request, response) => {
   try {
     const params = {
-      //masukin email sm password buat value nya
       username: request.body.username,
       password: md5(request.body.password),
     };
     console.log(params);
-    const findUser = await user.findOne({ where: params }); //nemuin user sesuai email dan password
+    const findUser = await user.findOne({ where: params });
     if (findUser == null) {
-      //kalo ga ada
       return response.status(400).json({
-        message: "You can't log in", //ga bisa log in
+        message: "You can't log in", 
       });
     }
     let tokenPayLoad = {
-      //bikin payload buat token
       username: findUser.username,
       role: findUser.role,
       nama_user: findUser.nama_user,
     };
     tokenPayLoad = JSON.stringify(tokenPayLoad);
-    let token = await jsonwebtoken.sign(tokenPayLoad, SECRET_KEY); //payload yang udah ada di sign in pake library jwt
+    let token = await jsonwebtoken.sign(tokenPayLoad, SECRET_KEY); 
     return response.status(200).json({
-      success: true, //klo bisa, muncul pesan "hore uhuy bisa"
+      success: true, 
       message: "logged in",
       logged: true,
       data: {
-        //yang login siapa
         token: token,
         id_user: findUser.id_user,
         nama_user: findUser.nama_user,
@@ -110,17 +101,14 @@ exports.Login = async (request, response) => {
 };
 
 exports.updateUser = async (request, response) => {
-  let id_user = request.params.id; //user mana yang mau di update
-
+  let id_user = request.params.id; 
   let getId = await user.findAll({
-    //dicari usernya
     where: {
       [Op.and]: [{ id_user: id_user }],
     },
   });
 
   if (getId.length === 0) {
-    //klo ga nemu
     return response.status(400).json({
       success: false,
       message: "User dengan id tersebut tidak ada",
@@ -128,25 +116,10 @@ exports.updateUser = async (request, response) => {
   }
 
   let dataUser = {
-    //data terbaru yang udah di update
     nama_user: request.body.nama_user,
     username: request.body.username,
     role: request.body.role,
   };
-
-  if (
-    //kalo ada yang kosong
-    dataUser.nama_user === "" ||
-    dataUser.username === "" ||
-    dataUser.password === "" ||
-    dataUser.role === ""
-  ) {
-    return response.status(400).json({
-      success: false,
-      message:
-        "Harus diisi semua.Kalau tidak ingin merubah, isi dengan value sebelumnya",
-    });
-  }
 
   let existingUser = await user.findAll({
     where: {
@@ -154,7 +127,7 @@ exports.updateUser = async (request, response) => {
         { id_user: { [Op.ne]: id_user } },
         {
           [Op.or]: [
-            { nama_user: dataUser.nama_user }, //cek, nama sama emailnya udah dipake orang lain apa belum
+            { nama_user: dataUser.nama_user }, 
             { username: dataUser.username },
           ],
         },
@@ -163,9 +136,8 @@ exports.updateUser = async (request, response) => {
   });
 
   if (existingUser.length > 0) {
-    //kalo ternyata udah dipake
     return response.status(400).json({
-      status: false,
+      success: false,
       message: "Cari nama atau username lain",
     });
   }
@@ -196,8 +168,8 @@ exports.getAllUser = async (request, response) => {
     });
   }
   return response.json({
-    status: true,
-    success: users,
+    success: true,
+    data: users,
     message: `All user have been loaded`,
   });
 };
@@ -205,38 +177,29 @@ exports.getAllUser = async (request, response) => {
 exports.searchUser = async (req, res) => {
   user
     .findAll({
-      // query untuk mencari data user berdasarkan nama user
       where: {
         [Op.or]: [
-          // query untuk mencari data user berdasarkan nama user
           { nama_user: { [Op.like]: "%" + req.body.nama_user + "%" } },
           { username: { [Op.like]: "%" + req.body.username + "%" } },
         ],
       },
     })
     .then((result) => {
-      // jika berhasil
       if (result.length > 0) {
-        // jika data user ditemukan
         res.status(200).json({
-          // mengembalikan response dengan status code 200 dan data user
           success: true,
           message: "user berhasil ditemukan",
           data: result,
         });
       } else {
-        // jika data user tidak ditemukan
         res.status(400).json({
-          // mengembalikan response dengan status code 400 dan pesan error
           success: false,
           message: "user not found",
         });
       }
     })
     .catch((error) => {
-      // jika gagal
       res.status(400).json({
-        // mengembalikan response dengan status code 400 dan pesan error
         success: false,
         message: error.message,
       });
@@ -244,7 +207,7 @@ exports.searchUser = async (req, res) => {
 };
 
 exports.deleteUser = async (request, response) => {
-  let id_user = request.params.id; //cari user berdasarkan ID
+  let id_user = request.params.id; 
   user
     .destroy({ where: { id_user: id_user } })
     .then((result) => {

@@ -7,7 +7,7 @@ exports.getAllMeja = async (request, response) => {
       response.status(200).json({
         success: true,
         data: result,
-        message: "yeay",
+        message: "all tables have been loaded",
       });
     })
     .catch((error) => {
@@ -26,7 +26,6 @@ exports.getByID = async (request, response) => {
         response.status(200).json({
           success: true,
           data: result,
-          message: "yeay",
         });
       } else {
         response.status(400).json({
@@ -52,7 +51,7 @@ exports.getByStatus = async (request, response) => {
         response.status(200).json({
           success: true,
           data: result,
-          message: "yeay",
+          message: "all tables have been loaded",
         });
       } else {
         response.status(400).json({
@@ -89,7 +88,7 @@ exports.addMeja = async (request, response) => {
             response.status(200).json({
               success: true,
               data: result,
-              message: "yeay",
+              message: "success creating a table",
             });
           })
           .catch((error) => {
