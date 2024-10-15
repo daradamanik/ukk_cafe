@@ -443,7 +443,7 @@ exports.receipt = async (request, response) => {
       total,
     };
 
-    const printstruk = (struk) => `
+  const printstruk = (struk) => `
   <!DOCTYPE html>
   <html lang="en">
   <head>
@@ -453,7 +453,7 @@ exports.receipt = async (request, response) => {
       body { font-family: Arial, sans-serif; margin: 20px; }
       table { width: 100%; border-collapse: collapse; }
       th, td { padding: 8px 12px; border-bottom: 1px solid #ddd; }
-      th { background-color: #f4f4f4; }
+      th { background-color: #f4f4f4; texy-align: center; }
       h2 { text-align: center; }
       .store-info { text-align: center; margin-bottom: 20px; }
       .store-info p { margin: 4px 0; }

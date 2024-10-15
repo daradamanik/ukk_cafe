@@ -175,12 +175,13 @@ exports.getAllUser = async (request, response) => {
 };
 
 exports.searchUser = async (req, res) => {
+  const keyword = req.paramas.keyword
   user
     .findAll({
       where: {
         [Op.or]: [
-          { nama_user: { [Op.like]: "%" + req.body.nama_user + "%" } },
-          { username: { [Op.like]: "%" + req.body.username + "%" } },
+          { nama_user: { [Op.like]: "%" + keyword + "%" } },
+          { username: { [Op.like]: "%" + keyword + "%" } },
         ],
       },
     })

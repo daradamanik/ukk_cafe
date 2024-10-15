@@ -10,7 +10,7 @@ app.put("/resetpassword/:id", control.resetpassword)
 app.post("/add", auth.authVerify, checkRole(["admin"]), control.addUser) 
 app.get("/allUser", auth.authVerify, checkRole(["admin"]), control.getAllUser)
 app.get("/getID/:id", auth.authVerify, checkRole(["admin"]), control.getById) 
-app.get("/search", auth.authVerify, checkRole(["admin"]), control.searchUser) 
+app.get("/search/:keyword", auth.authVerify, checkRole(["admin"]), control.searchUser) 
 app.put("/update/:id", auth.authVerify, checkRole(["admin"]), control.updateUser) 
 app.delete("/delete/:id", auth.authVerify, checkRole(["admin"]), control.deleteUser) 
 
