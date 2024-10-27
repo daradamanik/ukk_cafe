@@ -74,6 +74,7 @@ exports.Login = async (request, response) => {
       });
     }
     let tokenPayLoad = {
+      id_user: findUser.id_user,
       username: findUser.username,
       role: findUser.role,
       nama_user: findUser.nama_user,

@@ -6,7 +6,7 @@ const {checkRole} = require('../middleware/checkRole')
 app.use(express.json())
 
 app.post("/login", control.Login) 
-app.put("/resetpassword/:id", control.resetpassword) 
+app.put("/resetpassword/:id", auth.authVerify, control.resetpassword) 
 app.post("/add", auth.authVerify, checkRole(["admin"]), control.addUser) 
 app.get("/allUser", auth.authVerify, checkRole(["admin"]), control.getAllUser)
 app.get("/getID/:id", auth.authVerify, checkRole(["admin"]), control.getById) 

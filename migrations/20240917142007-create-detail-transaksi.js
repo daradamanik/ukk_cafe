@@ -26,7 +26,10 @@ module.exports = {
       jumlah : {
         type: Sequelize.INTEGER
       },
-      harga: {
+      pricePerMenu: {
+        type: Sequelize.INTEGER
+      },
+      totalPerMenu: {
         type: Sequelize.INTEGER
       },
       createdAt: {

@@ -1,9 +1,10 @@
-const transaksi = require("../models/index").transaksi;
 const Op = require("sequelize").Op;
+const { sequelize } = require("../models"); 
 const model = require("../models/index");
 const fs = require('fs')
 const path = require('path')
 const puppeteer = require('puppeteer')
+const transaksi = model.transaksi
 const user = model.user;
 const meja = model.meja;
 const detail = model.detail_transaksi;
@@ -109,45 +110,98 @@ exports.getIdUser = async (request, response) => {
 };
 
 exports.addTransaksi = async (request, response) => {
-  const dataTransaksi = {
-    id_user: request.body.id_user,
-    id_meja: request.body.id_meja,
-    nama_pelanggan: request.body.nama_pelanggan,
-    tgl_transaksi: new Date(),
-    status: request.body.status,
-  };
-  transaksi.create(dataTransaksi).then((result) => {
-    let id_transaksi = result.id_transaksi;
-    let detail_transaksi = request.body.detail_transaksi;
-    let total = 0;
+  const userId = request.userData.id_user
+  const idMeja = request.body.id_meja
+  try {
+    const mejaRecord = await meja.findOne({
+      where: { id_meja: idMeja }
+    });
+
+    if (!mejaRecord) {
+      return response.status(404).json({
+        success: false,
+        message: "Meja tidak ditemukan."
+      });
+    }
+
+    if (mejaRecord.status === 'terisi') {
+      return response.status(400).json({
+        success: false,
+        message: "Meja sudah terisi. Silakan pilih meja lain."
+      });
+    }
+
+    const dataTransaksi = {
+      id_user: userId,
+      nama_pelanggan: request.body.nama_pelanggan,
+      tgl_transaksi: new Date(),
+      status: request.body.status,
+    };
+
+    const result = await transaksi.create(dataTransaksi);
+    const id_transaksi = result.id_transaksi;
+    const detail_transaksi = request.body.detail_transaksi;
+    
+    const menuIds = detail_transaksi.map(item => item.id_menu);
+    const menuItems = await menu.findAll({
+      where: {
+        id_menu: menuIds
+      }
+    });
+    
+    const menuPriceMap = {};
+    menuItems.forEach(menu => {
+      menuPriceMap[menu.id_menu] = menu.harga; 
+    });
+    
+    let grandTotal = 0;
 
     for (let i = 0; i < detail_transaksi.length; i++) {
+      const { id_menu, jumlah, pricePerMenu } = detail_transaksi[i];
+      const originalPrice = menuPriceMap[id_menu];
+      if (parseFloat(detail_transaksi[i].pricePerMenu) !== parseFloat(originalPrice)) {
+        return response.status(400).json({
+          success: false,
+          message: `Harga menu untuk ${id_menu} tidak sesuai. Harga yang dimasukkan: ${detail_transaksi[i].pricePerMenu}, Harga asli: ${originalPrice}`
+        });
+      }
+
+      const totalPerMenu = originalPrice * jumlah;
+
       detail_transaksi[i].id_transaksi = id_transaksi;
-      detail_transaksi[i].harga =
-        detail_transaksi[i].jumlah * detail_transaksi[i].harga;
-      total += detail_transaksi[i].harga;
-      if (detail_transaksi[i].jumlah < 1) {
-        return response.json({
-          message: "pembelian minimal 1",
+      detail_transaksi[i].pricePerMenu = pricePerMenu; 
+      detail_transaksi[i].totalPerMenu = totalPerMenu; 
+      grandTotal += totalPerMenu;
+
+      console.log(grandTotal)
+
+      if (jumlah < 1) {
+        return response.status(400).json({
+          success: false,
+          message: "Pembelian minimal 1",
         });
       }
     }
-    detail
-      .bulkCreate(detail_transaksi)
-      .then((result) => {
-        return response.json({
-          success: true,
-          data: result,
-          message: "Order list has created",
-        });
-      })
-      .catch((error) => {
-        return response.json({
-          success: false,
-          message: error.message,
-        });
-      });
-  });
+    const detailResult = await detail.bulkCreate(detail_transaksi);
+    await meja.update(
+      { status: 'terisi' }, 
+      { where: { id_meja: request.body.id_meja } } 
+    );
+
+    return response.json({
+      success: true,
+      data: detailResult,
+      grandTotal: grandTotal,
+      message: "Order list has created",
+    });
+  } catch (error) {
+    console.error("Error while adding transaction:", error); 
+    return response.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+
 };
 
 exports.deleteTransaksi = async (request, response) => {
@@ -281,94 +335,67 @@ exports.filtertanggal = async (request, response) => {
 };
 
 exports.filterNamaUser = async (request, response) => {
-  const param = { nama_user: request.body.nama_user };
-  user
-    .findAll({
-      where: {
-        nama_user: param.nama_user,
-      },
-    })
-    .then((result) => {
-      if (result === null) {
-        response.status(404).json({
-          success: false,
-          message: "not found",
-        });
-      } else {
-        transaksi
-          .findAll({
-            where: {
-              id_user: result[0].id_user,
-            },
-          })
-          .then((result) => {
-            if (result.length === 0) {
-              response.status(404).json({
-                success: false,
-                message: "not found",
-              });
-            } else {
-              response.status(200).json({
-                success: true,
-                data: result,
-              });
-            }
-          })
-          .catch((error) => {
-            response.status(400).json({
-              success: false,
-              message: error.message,
-            });
-          });
-      }
-    })
-    .catch((error) => {
-      response.status(400).json({
-        success: false,
-        message: error.message,
-      });
-    });
-};
+  const { nama_user } = request.body;
 
-exports.filterBulan = async (request, response) => {
-  const param = { bulan_transaksi: request.params.bulan_transaksi };
-  transaksi
-    .findAll({
-      where: {
-        tgl_transaksi: {
-          [Op.like]: param.bulan_transaksi + "%",
-        },
-      },
+  try {
+    const result = await transaksi.findAll({
       include: [
         {
           model: user,
           as: "user",
-        },
-        {
-          model: model.meja,
-          as: "meja",
+          where: { nama_user: nama_user }, 
         },
       ],
-    })
-    .then((result) => {
-      if (result.length === 0) {
-        response.status(404).json({
-          success: false,
-          message: "not found",
-        });
-      } else {
-        response.status(200).json({
-          success: true,
-          data: result,
-        });
-      }
-    })
-    .catch((error) => {
-      response.status(400).json({
-        success: false,
-        message: error.message,
-      });
     });
+
+    if (result.length === 0) {
+      return response.status(404).json({
+        success: false,
+        message: "not found",
+      });
+    }
+
+    response.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    response.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+exports.filterBulan = async (request, response) => {
+  const { bulan_transaksi } = request.params;
+  try {
+    const result = await sequelize.query(
+      `SELECT * FROM transaksis
+       WHERE MONTH(tgl_transaksi) = :bulan`, 
+      {
+        replacements: { bulan: parseInt(bulan_transaksi, 10) },
+        type: sequelize.QueryTypes.SELECT,
+      }
+    );
+
+    if (result.length === 0) {
+      return response.status(404).json({
+        success: false,
+        message: "not found",
+      });
+    }
+
+    response.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    response.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
 };
 
 exports.orderHistory = async (request, response) => {
@@ -427,8 +454,8 @@ exports.receipt = async (request, response) => {
       return {
         menuName: detail.menu ? detail.menu.nama_menu : "Unknown",
         quantity: detail.jumlah,
-        pricePerMenu: detail.harga,
-        totalPerMenu: detail.jumlah * detail.harga,
+        pricePerMenu: detail.menu ? detail.menu.harga : 0, 
+        totalPerMenu: detail.jumlah * (detail.menu ? detail.menu.harga : 0),
       };
     });
     const total = receiptItems.reduce(
@@ -451,7 +478,7 @@ exports.receipt = async (request, response) => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
       body { font-family: Arial, sans-serif; margin: 20px; }
-      table { width: 100%; border-collapse: collapse; }
+      table { width: 100%; border-collapse: collapse; text-align: left}
       th, td { padding: 8px 12px; border-bottom: 1px solid #ddd; }
       th { background-color: #f4f4f4; texy-align: center; }
       h2 { text-align: center; }
